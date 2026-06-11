@@ -96,6 +96,7 @@ export function computeLayout(model: GrafcetModel): LayoutResult {
       if (!t) continue;
       // Transition appears at row + 0.5
       const transRow = row + 1;
+      if (transRow >= steps.length) continue; // back-edge / loop-back — skip for layout
       for (const tsid of t.to) {
         const existing = rowOf.get(tsid);
         if (existing === undefined || existing < transRow) {
