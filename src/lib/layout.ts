@@ -134,22 +134,25 @@ export function computeLayout(model: GrafcetModel): LayoutResult {
 
   for (const row of sortedRows.slice(1)) {
     const rowSteps = byRow.get(row) ?? [];
-    // Check if they come from a parallel split
+    // Check if they come from a parallel split or join
     const assignedCols = new Set<number>();
     for (const sid of rowSteps) {
       // Find transition(s) leading to this step
       const inTrans = (adjIn.get(sid) ?? []).map(tid => transById.get(tid)!).filter(Boolean);
-      let parentCol: number | undefined;
+      const parentCols: number[] = [];
       for (const t of inTrans) {
         for (const fsid of t.from) {
           const c = colOf.get(fsid);
-          if (c !== undefined) { parentCol = c; break; }
+          if (c !== undefined) parentCols.push(c);
         }
-        if (parentCol !== undefined) break;
       }
-      if (parentCol !== undefined && !assignedCols.has(parentCol)) {
-        colOf.set(sid, parentCol);
-        assignedCols.add(parentCol);
+      if (parentCols.length > 0) {
+        // Average of all source columns — centers join targets between their sources
+        const parentCol = parentCols.reduce((a, b) => a + b, 0) / parentCols.length;
+        if (!assignedCols.has(parentCol)) {
+          colOf.set(sid, parentCol);
+          assignedCols.add(parentCol);
+        }
       }
     }
     // Steps that didn't get a column yet: assign new ones

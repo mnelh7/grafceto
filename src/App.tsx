@@ -4,6 +4,7 @@ import type { GrafcetModel } from './lib/parser';
 import { EXAMPLES, DEFAULT_EXAMPLE } from './examples';
 import type { Example } from './examples';
 import EditorPanel from './components/EditorPanel';
+import PreviewCanvas from './components/PreviewCanvas';
 
 // ── Logo mark: a minimal GRAFCET initial-step icon ──────────
 function LogoMark() {
@@ -213,12 +214,13 @@ export default function App() {
           />
         </div>
 
-        {/* Right: preview placeholder (replaced in M3) */}
+        {/* Right: live preview canvas */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
-          <PreviewPlaceholder
-            model={parseResult.model ?? (parseResult.errors.length > 0 ? lastValidModel : null)}
+          <PreviewCanvas
+            model={parseResult.model}
+            lastValidModel={lastValidModel}
             hasErrors={parseResult.errors.length > 0}
-            showGrid={config.showGrid}
+            config={config}
           />
         </div>
       </div>
@@ -226,36 +228,3 @@ export default function App() {
   );
 }
 
-// ── Preview placeholder (swapped out in M3) ─────────────────
-interface PreviewPlaceholderProps {
-  model: GrafcetModel | null;
-  hasErrors: boolean;
-  showGrid: boolean;
-}
-
-function PreviewPlaceholder({ model, hasErrors, showGrid }: PreviewPlaceholderProps) {
-  return (
-    <div
-      className={`flex-1 flex items-center justify-center relative ${showGrid ? 'dotted-grid' : 'bg-slate-50'}`}
-      style={{ background: showGrid ? undefined : '#f8fafc' }}
-    >
-      <div
-        className="bg-white/80 rounded-xl border border-slate-200 px-8 py-6 text-center shadow-sm max-w-xs"
-        style={{ opacity: hasErrors && !model ? 0.5 : 1 }}
-      >
-        <div className="mb-3 flex justify-center">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-            <rect x="4" y="4" width="32" height="32" rx="2" stroke="#94a3b8" strokeWidth="2" />
-            <rect x="9" y="9" width="22" height="22" rx="1" stroke="#94a3b8" strokeWidth="1.5" />
-            <line x1="20" y1="0" x2="20" y2="9" stroke="#94a3b8" strokeWidth="2" />
-            <line x1="20" y1="31" x2="20" y2="40" stroke="#94a3b8" strokeWidth="2" />
-          </svg>
-        </div>
-        <p className="text-sm font-medium text-slate-500">
-          {model ? `"${model.title}" — ${model.steps.length} steps` : 'Diagram preview'}
-        </p>
-        <p className="text-xs text-slate-400 mt-1">Renderer arrives in M3</p>
-      </div>
-    </div>
-  );
-}
