@@ -42,11 +42,6 @@ export interface LayoutResult {
 // Build a simple layer graph
 // ──────────────────────────────────────────────────────────
 
-interface Layer {
-  stepIds: string[];
-  transId: string | null; // transition that follows this layer
-}
-
 export function computeLayout(model: GrafcetModel): LayoutResult {
   const { steps, transitions } = model;
 
