@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { parse } from './lib/parser';
 import type { GrafcetModel } from './lib/parser';
 import { EXAMPLES, DEFAULT_EXAMPLE } from './examples';
@@ -114,7 +114,7 @@ export default function App() {
   const parseResult = useMemo(() => parse(code), [code]);
 
   // Keep last valid model for faded preview on error
-  useMemo(() => {
+  useEffect(() => {
     if (parseResult.model) setLastValidModel(parseResult.model);
   }, [parseResult]);
 

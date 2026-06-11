@@ -138,7 +138,7 @@ export function computeLayout(model: GrafcetModel): LayoutResult {
     const assignedCols = new Set<number>();
     for (const sid of rowSteps) {
       // Find transition(s) leading to this step
-      const inTrans = (adjIn.get(sid) ?? []).map(tid => transById.get(tid)!).filter(Boolean);
+      const inTrans = (adjIn.get(sid) ?? []).map(tid => transById.get(tid)).filter((t): t is GrafcetTransition => !!t);
       const parentCols: number[] = [];
       for (const t of inTrans) {
         for (const fsid of t.from) {
@@ -253,8 +253,8 @@ export function computeLayout(model: GrafcetModel): LayoutResult {
   // Compute total SVG size
   let maxX = 0, maxY = 0;
   for (const ls of layoutSteps) {
-    maxX = Math.max(maxX, ls.x + STEP_W + ACTION_W + 20);
-    maxY = Math.max(maxY, ls.y + STEP_H);
+    maxX = Math.max(maxX, ls.x + STEP_W + 14 + ACTION_W + 20);
+    maxY = Math.max(maxY, ls.y + STEP_H + 20);
   }
 
   const svgWidth = maxX + PAD_X;

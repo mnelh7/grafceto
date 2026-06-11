@@ -93,7 +93,7 @@ function ActionBoxes({ ls }: { ls: LayoutStep }) {
       {step.actions.map((action, i) => {
         const ay = startY + i * (ACTION_H + 4);
         return (
-          <g key={i}>
+          <g key={`${action}-${i}`}>
             {i > 0 && (
               <line x1={boxX + ACTION_W / 2} y1={ay - 4} x2={boxX + ACTION_W / 2} y2={ay}
                 stroke={C.strokeLight} strokeWidth={1} />
@@ -127,21 +127,25 @@ function NormalTransition({ lt }: { lt: LayoutTransition }) {
   const spanLeft = Math.min(...allX);
   const spanRight = Math.max(...allX);
   const spanCx = (spanLeft + spanRight) / 2;
-  const halfSpan = Math.max((spanRight - spanLeft) / 2, 20);
 
   // Transition bar is always 40px wide, centered on spanCx
   const tBarHalf = 20;
 
   let transY: number;
-  let extraY: number | null = null;
+  let joinY: number | null = null;
+  let branchY: number | null = null;
 
-  if (isMultiTo) {
+  if (isMultiFrom && isMultiTo) {
+    joinY   = maxFromY + gap * 0.2;
+    transY  = maxFromY + gap * 0.5;
+    branchY = maxFromY + gap * 0.75;
+  } else if (isMultiTo) {
     // branch: trans bar first, then divergence double-bar below
-    transY = maxFromY + gap * 0.28;
-    extraY = maxFromY + gap * 0.62;
+    transY  = maxFromY + gap * 0.28;
+    branchY = maxFromY + gap * 0.62;
   } else if (isMultiFrom) {
     // join: convergence double-bar first, then trans bar below
-    extraY = maxFromY + gap * 0.28;
+    joinY  = maxFromY + gap * 0.28;
     transY = maxFromY + gap * 0.62;
   } else {
     transY = maxFromY + gap * 0.5;
@@ -153,18 +157,18 @@ function NormalTransition({ lt }: { lt: LayoutTransition }) {
       {fromCenters.map((fc, i) => (
         <line key={`fc${i}`}
           x1={fc.x} y1={fc.y}
-          x2={fc.x} y2={isMultiFrom && extraY !== null ? extraY : transY - 2}
+          x2={fc.x} y2={joinY !== null ? joinY : transY - 2}
           stroke={C.connector} strokeWidth={1.5} />
       ))}
 
       {/* Convergence bar (join) */}
-      {isMultiFrom && extraY !== null && (
+      {joinY !== null && (
         <>
-          <line x1={spanLeft} y1={extraY} x2={spanRight} y2={extraY}
+          <line x1={spanLeft} y1={joinY} x2={spanRight} y2={joinY}
             stroke={C.stroke} strokeWidth={3} />
-          <line x1={spanLeft} y1={extraY + 5} x2={spanRight} y2={extraY + 5}
+          <line x1={spanLeft} y1={joinY + 5} x2={spanRight} y2={joinY + 5}
             stroke={C.stroke} strokeWidth={3} />
-          <line x1={spanCx} y1={extraY + 5} x2={spanCx} y2={transY - 2}
+          <line x1={spanCx} y1={joinY + 5} x2={spanCx} y2={transY - 2}
             stroke={C.connector} strokeWidth={1.5} />
         </>
       )}
@@ -184,13 +188,13 @@ function NormalTransition({ lt }: { lt: LayoutTransition }) {
       </text>
 
       {/* Divergence bar (branch) */}
-      {isMultiTo && extraY !== null && (
+      {branchY !== null && (
         <>
-          <line x1={spanCx} y1={transY + 2} x2={spanCx} y2={extraY}
+          <line x1={spanCx} y1={transY + 2} x2={spanCx} y2={branchY}
             stroke={C.connector} strokeWidth={1.5} />
-          <line x1={spanLeft} y1={extraY} x2={spanRight} y2={extraY}
+          <line x1={spanLeft} y1={branchY} x2={spanRight} y2={branchY}
             stroke={C.stroke} strokeWidth={3} />
-          <line x1={spanLeft} y1={extraY + 5} x2={spanRight} y2={extraY + 5}
+          <line x1={spanLeft} y1={branchY + 5} x2={spanRight} y2={branchY + 5}
             stroke={C.stroke} strokeWidth={3} />
         </>
       )}
@@ -199,7 +203,7 @@ function NormalTransition({ lt }: { lt: LayoutTransition }) {
       {toCenters.map((tc, i) => (
         <line key={`tc${i}`}
           x1={tc.x}
-          y1={isMultiTo && extraY !== null ? extraY + 5 : transY + 2}
+          y1={branchY !== null ? branchY + 5 : transY + 2}
           x2={tc.x} y2={tc.y}
           stroke={C.connector} strokeWidth={1.5} />
       ))}
@@ -275,7 +279,7 @@ export default function GrafcetRenderer({ model, config, faded = false }: Props)
         fontSize={15} fontWeight={600}
         fill={C.titleText}
         fontFamily="system-ui,sans-serif"
-        letterSpacing="0.4"
+        letterSpacing={0.4}
       >
         {model.title}
       </text>
@@ -284,7 +288,7 @@ export default function GrafcetRenderer({ model, config, faded = false }: Props)
       {layout.transitions.map(lt => {
         const maxFromY = Math.max(...lt.fromCenters.map(c => c.y));
         const minToY = Math.min(...lt.toCenters.map(c => c.y));
-        const isLoopBack = minToY < maxFromY;
+        const isLoopBack = minToY < maxFromY && lt.fromCenters.length === 1 && lt.toCenters.length === 1;
         return isLoopBack
           ? <LoopBackTransition key={lt.transition.id} lt={lt} routeX={loopRouteX} />
           : <NormalTransition key={lt.transition.id} lt={lt} />;
