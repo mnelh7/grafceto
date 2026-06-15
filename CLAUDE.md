@@ -25,7 +25,7 @@ Constraints (from `todo.md`):
 
 ## Architecture
 
-Data flows: DSL text → `parser.ts` → `GrafcetModel` → `layout.ts` → `LayoutResult` → SVG renderer (M3, not yet built).
+Data flows: DSL text → `parser.ts` → `GrafcetModel` → `layout.ts` → `LayoutResult` → SVG renderer (`GrafcetRenderer.tsx`, built in M3).
 
 ### Core library (`src/lib/`)
 
@@ -43,7 +43,7 @@ Key types exported: `GrafcetStep`, `GrafcetTransition`, `GrafcetModel`, `ParseEr
 - `parse(code)` runs inside `useMemo` on every keystroke
 - `lastValidModel` is kept in state so the preview stays visible (faded) while there are parse errors
 - `AppConfig` (show grid, show actions, spacing, label position) lives here and is passed down as props
-- The preview area is currently a placeholder (`PreviewPlaceholder`) — the real SVG renderer (`GrafcetRenderer`) and pan/zoom canvas (`PreviewCanvas`) are built in M3/M4
+- The preview renders the live diagram via `PreviewCanvas` (pan/zoom) wrapping `GrafcetRenderer` (SVG) — both built in M3
 
 ### Editor panel (`src/components/EditorPanel.tsx`)
 
@@ -55,12 +55,25 @@ Three built-in examples (`EXAMPLES` array): Electric Hand Dryer (verbose syntax)
 
 ## Development milestones
 
-`todo.md` tracks progress. Completed: M1 (parser + layout), M2 (app shell + editor). Upcoming:
-- **M3** — `GrafcetRenderer.tsx` (SVG rendering)
-- **M4** — `PreviewCanvas.tsx` (pan/zoom) + `Palette.tsx`
-- **M5** — Export SVG/PNG, copy code, docs panel
+`todo.md` tracks high-level milestones. Completed: M1 (parser + layout), M2 (app shell + editor), M3 (`GrafcetRenderer.tsx` SVG rendering + `PreviewCanvas.tsx` pan/zoom). Upcoming:
+- **M4** — `Palette.tsx` + help card (pan/zoom canvas itself is already in via M3)
+- **M5** — Export SVG/PNG, copy code, docs panel (spec'd: `docs/specs/0001-header-actions-export-docs.md`)
 - **M6** — Config tab completion, syntax highlighting
 - **M7** — Accessibility, edge-case hardening, final build
+
+## Workflow (idea → exec)
+
+This repo uses a lightweight, native-Claude-Code workflow. **Read `docs/workflow/README.md`** for
+the full guide. In short:
+
+- **Specs** live in `docs/specs/` (structured PRD + tasks). Copy `_TEMPLATE.md` or run `/spec <idea>`.
+  `todo.md` stays the coarse milestone map; specs are the zoomed-in contracts for active work.
+- **`/spec <idea>`** scaffolds a new numbered spec.
+- **Plan mode** (Shift+Tab) for any non-trivial task before editing; the `Explore` / `Plan` agents
+  help with recon and planning.
+- **`grafcet-reviewer`** subagent reviews diffs against this project's constraints before a PR.
+- **One spec at a time, one task per commit.** When you ship, reconcile the spec status, `todo.md`,
+  and this file (`CLAUDE.md`) in the same change — stale memory misleads every future session.
 
 ## DSL syntax reference
 
